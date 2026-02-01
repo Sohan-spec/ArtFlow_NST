@@ -112,7 +112,7 @@ def prepare_model(model,device):
 def gram_matrix(x,should_normalize=True):
     #this is how style simialrity is calculated, bring the gram matrix of the o/p image as close as to the style image and you'll have your o/p image looking like that (but with your content image)
     (b,ch,h,w)=x.size()
-    features=x.reshape(b,ch,w*h)
+    features=x.view(b,ch,w*h)
     features_t=features.transpose(1,2)
     gram=features.bmm(features_t)
     if should_normalize:
@@ -120,8 +120,12 @@ def gram_matrix(x,should_normalize=True):
     return gram
 
 def total_variation_loss(y):
-    #tv loss is how much each pixel is varying to its neighbour, and the method is explained below
-    return torch.sum(torch.abs(y[:,:,:,:-1]-y[:,:,:,1:])) + torch.sum(torch.abs(y[:,:,:-1,:]-y[:,:,1:,:]))
+    return (
+        torch.sum(torch.abs(y[:,:,:,:-1] - y[:,:,:,1:])) + \
+        torch.sum(torch.abs(y[:,:,:-1,:] - y[:,:,1:,:]))
+    ) 
+
+
 '''this is like:
   for the first torch.abs [b,c,h,w] we're doing take all the Batches, all channels, and height(rows) but remove the first and last column (width), as 1st and last column don't have any left and right neighbours
   
