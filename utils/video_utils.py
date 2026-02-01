@@ -14,8 +14,8 @@ def create_video_from_results(results_path,img_format):
         pattern=os.path.join(results_path,img_name_format)
         video_save_path=os.path.join(results_path,output_file_name)
         
-        trim_video_comm=['start_number',str(first_frame),'-vframes',str(number_of_frames_to_process)] #this is to start from the first frame and the go until the last
-        input_options=['-r',fps,'-i',pattern] #read all the images in the pattern path at 24 fps(so if 300 images-> 300/24, you get 12.5s vid)
+        trim_video_comm=['-start_number',str(first_frame),'-vframes',str(number_of_frames_to_process)] #this is to start from the first frame and the go until the last
+        input_options=['-r',str(fps),'-i',pattern] #read all the images in the pattern path at 24 fps(so if 300 images-> 300/24, you get 12.5s vid)
         encoding_options=['-c:v', 'libx264', '-crf', '18', '-pix_fmt', 'yuv420p']
         #libx264 is a video codedc format, crf is the quality level(lower is better) and yuv420p is pixel format supported by most devices
         subprocess.call([ffmpeg,*input_options,*trim_video_comm,*encoding_options,video_save_path])

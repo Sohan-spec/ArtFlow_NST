@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 
 from models.definitions.vgg_nets import Vgg19, Vgg16
 
-style_layer_weights = [1.0, 1.0, 1.0, 0.5, 0.25, 0.1, 0.1, 0.1, 0.05]
 IMAGENET_MEAN_255 = [123.675, 116.28, 103.53]
 IMAGENET_STD_NEUTRAL = [1, 1, 1]
 
@@ -51,12 +50,12 @@ def generate_out_image_name(config): #this is to just generate the output image 
     if 'reconstruct_script' in config:
         suffix=f"_o_{config['optimizer']}_h_{config['height']}_m_{config['model']}{config['img_format'][1]}"
     else:
-        suffix=f"_o_{config['optimizer']}_i_{config['init_method']}_h_{str(config['height'])}_m_{config['model']}_cw_{config['content_weight']}_sw_{config['style_weight']}_tv_{config['tv_weight']}{config['img_format'][1]}"
+        suffix=f"_o_{config['optimizer']}_i_{config['initial_method']}_h_{str(config['height'])}_m_{config['model']}_cw_{config['content_weight']}_sw_{config['style_weight']}_tv_{config['tv_weight']}{config['img_format'][1]}"
     return prefix + suffix 
         
         
         
-def save_and_maybe_display(optimizing_img,dump_path,config,img_id,num_of_iterations,should_display=False):
+def save_and_maybe_display(optimizing_img,dump_path,config,img_id,num_of_iterations):
     #this is prolly self explanatory
     saving_frequency=config['saving_freq']
     out_img=optimizing_img.squeeze(axis=0).to('cpu').detach().numpy()
@@ -66,13 +65,18 @@ def save_and_maybe_display(optimizing_img,dump_path,config,img_id,num_of_iterati
         img_format=config['img_format']
         out_img_name=str(img_id).zfill(img_format[0])+img_format[1] if saving_frequency !=-1 else generate_out_image_name(config)
         dump_img=np.copy(out_img)
-        dump_img+=np.array(IMAGENET_MEAN_255).reshape((1,1,3))
+        dump_img+=np.array(IMAGENET_MEAN_255).reshape(1,1,3)
         dump_img=np.clip(dump_img,0,255).astype('uint8')
         cv.imwrite(os.path.join(dump_path,out_img_name),dump_img[:,:,::-1])
+
+
+def display_feature_images(optimizing_img):
+    out_img=optimizing_img.squeeze(axis=0).to('cpu').detach().numpy()
+    out_img=np.moveaxis(out_img,0,2)
+    plt.imshow(np.uint8(get_uint8_range(out_img)))
+    plt.show()
+        
     
-    if should_display:
-        plt.imshow(np.uint8(get_uint8_range(out_img)))
-        plt.show()
 
 
 def get_uint8_range(x):
@@ -90,9 +94,9 @@ def prepare_model(model,device):
     #this ofc prepares the model acc to the vggnet we choose, and in my vgg_nets.py i've mentioned that this vgg16 is not the original one, it has updated loss functions similar to vgg19
     model=model.lower()
     if model =='vgg16':
-        model=Vgg16(requires_grad=False,show_progress=True)
+        model=Vgg16(requires_grad=False)
     elif model=='vgg19':
-        model=Vgg19(requires_grad=False,show_progress=True)
+        model=Vgg19(requires_grad=False)
     else:
         raise ValueError(f"{model} was not found")
     
@@ -102,10 +106,8 @@ def prepare_model(model,device):
     
     content_layer_info=(content_feature_maps_index,layer_names[content_feature_maps_index])
     style_layers_info=(style_feature_maps_indices,layer_names)
-    model = model.to(device)
-    for p in model.parameters():
-        assert p.device == torch.device(device)
-    return model.to(device).eval(), content_layer_info,style_layers_info
+    model = model.to(device).eval()
+    return model, content_layer_info,style_layers_info
 
 def gram_matrix(x,should_normalize=True):
     #this is how style simialrity is calculated, bring the gram matrix of the o/p image as close as to the style image and you'll have your o/p image looking like that (but with your content image)
