@@ -97,7 +97,7 @@ def neural_style_transfer(config):
             return total_loss
         optimizer.step(closure)
     if config['saving_freq'] > 0:
-        print("yo vid comin up buddy, enjoy the slow mo")
+
         create_video_from_results(dump_path, config['img_format'])
     else:
         print("skipped vid gen as freq=-1")

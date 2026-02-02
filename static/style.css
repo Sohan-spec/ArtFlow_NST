@@ -79,6 +79,7 @@ body {
     letter-spacing: 2px;
     text-transform: uppercase;
     background: linear-gradient(to right, #fff, #aaa);
+    background-clip:var(--text-main);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
