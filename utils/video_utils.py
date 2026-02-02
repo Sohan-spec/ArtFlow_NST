@@ -23,7 +23,7 @@ def create_video_from_results(results_path, img_format):
         for frame in frames:
             f.write(f"file '{os.path.join(results_path, frame)}'\n")
 
-    comm = [ffmpeg,"-y","-r", str(fps),"-f", "concat","-safe", "0","-i", concat_file,"-c:v", "libx264","-crf", "18","-pix_fmt", "yuv420p",video_save_path]
+    comm = [ffmpeg,"-y","-r", str(fps),"-f", "concat","-safe", "0","-i", concat_file,"-c:v", "libx264","-crf", "18","-pix_fmt", "yuv420p","-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2",video_save_path]
      #libx264 is a video codedc format, crf is the quality level(lower is better) and yuv420p is pixel format supported by most devices
     result = subprocess.run(comm, capture_output=True, text=True)
 

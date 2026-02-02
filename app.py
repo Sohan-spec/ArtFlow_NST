@@ -138,8 +138,8 @@ def predict():
         '--model', 'vgg19',
         '--saving_freq', '50',  # Save progress images
         '--height', '400',
-        '--content_weight', '1e4', # Reduce content weight
-        '--style_weight', '1e6'    # Increase style weight significantly
+        '--content_weight', '1e5',
+        '--style_weight', '3e2'
     ]
     
     def generate():
@@ -218,4 +218,6 @@ def predict():
     return Response(generate(), mimetype='text/event-stream')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Cloud Run/Hugging Face compatibility
+    port = int(os.environ.get('PORT', 7860))
+    app.run(host='0.0.0.0', port=port)
